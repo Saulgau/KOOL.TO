@@ -19,17 +19,61 @@
             height: 100%;
             border: none;
         }
+        #backButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
+    <button id="backButton" onclick="goBack()">◀︎ Zurück</button>
     <iframe id="browser" src="https://kool.to/web-vod/" allowfullscreen></iframe>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.addEventListener("gesturestart", function (event) {
-                event.preventDefault(); // Verhindert Zoomen
-            });
+        const iframe = document.getElementById("browser");
+        const backButton = document.getElementById("backButton");
+        let historyStack = [];
+
+        // Abfangen von Klicks auf Links innerhalb der eingebetteten Seite
+        iframe.onload = function() {
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            if (doc) {
+                doc.addEventListener('click', function(event) {
+                    let target = event.target.closest('a');
+                    if (target && target.href) {
+                        event.preventDefault();  // Standardverhalten verhindern
+                        historyStack.push(iframe.src);  // Aktuelle Seite merken
+                        iframe.src = target.href;  // Link im iframe öffnen
+                        backButton.style.display = 'block';  // Zeige den Zurück-Button
+                    }
+                });
+            }
+        };
+
+        // Zurück-Funktion
+        function goBack() {
+            if (historyStack.length > 0) {
+                iframe.src = historyStack.pop();  // Gehe zur vorherigen Seite zurück
+                if (historyStack.length === 0) {
+                    backButton.style.display = 'none';  // Verstecke den Button, wenn man wieder auf der Startseite ist
+                }
+            }
+        }
+
+        // Zoomen verhindern
+        document.addEventListener("gesturestart", function(event) {
+            event.preventDefault();
         });
     </script>
 
